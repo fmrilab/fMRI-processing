@@ -101,6 +101,9 @@ classdef overlayview < handle
 %       Description: Function to show the total overlaid images
 %
 %       Variable input arguments:
+%           - 'shift',:
+%               - indicies to shift the image by
+%               - default is [0,0,0]
 %           - 'layers':
 %               - layers to show
 %               - integers (or an array) describing layer indicies to show
@@ -181,7 +184,8 @@ classdef overlayview < handle
         function show(obj,varargin)
 
             % Set defaults and parse through variable inputs
-            defaults = struct('layers', 1:length(obj.ims), ...
+            defaults = struct('shift', zeros(1,ndims(obj.ims{1}.im)), ...
+                'layers', 1:length(obj.ims), ...
                 'viewtype', 'lbview', ...
                 'viewargs', []);
             args = vararg_pair(defaults, varargin);
@@ -220,6 +224,11 @@ classdef overlayview < handle
             % Set viewargs
             if isempty(args.viewargs)
                 args.viewargs = cell(0);
+            end
+
+            % shift the image
+            for i = 1:length(args.shift)
+                im_all = circshift(im_all,args.shift(i),i);
             end
 
             % Display the image

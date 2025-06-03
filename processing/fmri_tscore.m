@@ -1,14 +1,24 @@
-function [tscore,beta] = fmri_tscore(A,y,df)
-% A = [nt x nc] design matrix
-% y = [nt x nv] vectorized image timeseries
+function [tscore,beta] = fmri_tscore(A,X,df)
+% function to calculate fMRI tscore maps from given timeseries and design
+% matrix
+% by David Frey
+%
+% inputs:
+% A - design matrix (nt x nc)
+% X - image timeseries ((N) x nt)
 % df = degrees of freedom (optional, default = nt - nc)
-% tscore = [nc x nv] vectorized voxel-wise activation tscores
-% beta = [nc x nv] vectorized voxel-wise activation beta coefficients
+%
+% outputs:
+% tscore - voxel-wise activation tscores ((N) x nc)
+% beta - voxel-wise activation beta coefficients ((N) x nv)
+%
 
     % get sizes
     nt = size(A,1); % number of time points
     nc = size(A,2); % number of contrasts
-    nv = size(y,2); % number of voxels
+    xvec = reshape(X,[],nt).'; % vectorized timeseries
+    sz = size(X);
+    nv = size(xvec,2); % number of voxels
 
     % set default degrees of freedom
     if nargin<3 || isempty(df)
@@ -16,10 +26,10 @@ function [tscore,beta] = fmri_tscore(A,y,df)
     end
 
     % calculate beta coefficients
-    beta = pinv(A) * y;
+    beta = pinv(A) * xvec;
 
     % calculate variance
-    r = y - A*beta; % residual
+    r = xvec - A*beta; % residual
     rss = sum(r.^2, 1); % sum of squares
     v = rss / df; % variance (sigma^2)
 
@@ -30,6 +40,10 @@ function [tscore,beta] = fmri_tscore(A,y,df)
         SE_beta = sqrt(v(n) * diag(pinv(A_gram))); % standard error of beta
         tscore(:,n) = beta(:,n) ./ SE_beta(:);
     end
+
+    % reshape to image dimensions
+    tscore = reshape(tscore.',[sz(1:end-1),nc]);
+    beta = reshape(beta.',[sz(1:end-1),nc]);
 
 end
 
