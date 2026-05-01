@@ -45,8 +45,8 @@ function ref = fmri_act(t, t_on, t_off, t_del, varargin)
     stim = 1*(mod(t - t_del, t_on + t_off) >= t_off).*(t >= t_del);
     
     % convolve to create activation waveform
-    ref = conv(stim(:)',hrf(:).',"same");
-    
+    ref = conv(hrf(:).',stim(:).');
+    ref = ref(1:nt);
 
 end
 
