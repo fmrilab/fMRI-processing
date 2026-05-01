@@ -17,7 +17,7 @@ function X_detrend = poly_detrend(X,n)
     A = t .^ (0:n);
 
     % get coefficients
-    [~,coeffs] = fmriutl.fmri_tscore(A,abs(X));
+    [~,coeffs] = fmri_tscore(A,abs(X));
     coeffs = reshape(coeffs,[],n+1);
 
     % reshape into trends image
