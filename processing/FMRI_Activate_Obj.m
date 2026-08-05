@@ -9,7 +9,11 @@ classdef FMRI_Activate_Obj < handle
         function obj = FMRI_Activate_Obj(config,img)
             % inputs:
             %   config:
-            %       -
+            %       - t_on: on time (s)
+            %       - t_off: off time (s)
+            %       - tr: temporal resolution (s)
+            %       - ncyc: number of cycles
+            %       - onset_delay: offset between the paradigm begin and acquisition begin (s)
             %   img: [nx,ny,(nz),nt], the image series (2D or 3D volumes by time)
             obj.config = config;
             obj.initializeData(img);
@@ -23,7 +27,7 @@ classdef FMRI_Activate_Obj < handle
             %       A(:,2) : activation;
             %   - tmap: [nx,ny,(nz)] tscore map (activation contrast)
             ref = fmri_act(obj.config.t, obj.config.t_on, obj.config.t_off, obj.config.onset_delay);
-            A = ref(obj.config.nDummyCyc*(obj.config.t_on+obj.config.t_off)/obj.config.tr+1:end)' .^ [0,1]; %model regressors: [baseline, activation]; the first few are dummy cycles
+            A = ref' .^ [0,1]; %model regressors: [baseline, activation]; the first few are dummy cycles
             obj.data = struct('img',img, ...
                 'A',A, ...
                 'tmap',[]);
@@ -77,6 +81,10 @@ classdef FMRI_Activate_Obj < handle
             % pick a good t-score threshold for overlay view
             % (optional) t_max: colormap maximum for the tscore map display
             % (optional) nrow: number of rows in the overlay montage (default 1)
+            % fmri_act_obj.pick_t_thrld(16)        % 1 row 
+            % fmri_act_obj.pick_t_thrld(16, 4)     % t_max=16, 4 rows
+            % fmri_act_obj.pick_t_thrld([], 4)     % default t_max, 4 rows
+
             if nargin<2, t_max = []; end
             if nargin<3, nrow = []; end
             t_thrld = input('Give an initial t-score threshold:','s');
