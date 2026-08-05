@@ -34,6 +34,15 @@ if ~exist('lambda_upper','var')
    lambda_upper = 0.1;
 end
 
+% sort thresholds ascending so t_k differences stay non-negative
+if any(diff(CT) < 0)
+    disp('Sorting thresholds list into ascending order...')
+   [CT, sortIdx] = sort(CT,'ascend');
+   if exist('cmaps','var')
+      cmaps = cmaps(:,:,:,sortIdx);
+   end
+end
+
 % load data and roi
 if ~exist('cmaps','var')
    datdir = './data/'; 
