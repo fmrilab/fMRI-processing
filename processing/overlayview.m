@@ -184,9 +184,10 @@ classdef overlayview < handle
         function show(obj,varargin)
 
             % Set defaults and parse through variable inputs
-            defaults = struct('shift', zeros(1,ndims(obj.ims{1}.im)), ...
+            defaults = struct( ...
+                'ax', gca, ...
                 'layers', 1:length(obj.ims), ...
-                'viewtype', 'lbview', ...
+                'im_view_fun', @(x,args) im(args{:},x), ...
                 'viewargs', []);
             args = vararg_pair(defaults, varargin);
 
@@ -214,9 +215,14 @@ classdef overlayview < handle
                 im_all = im_all + im_layer;
 
                 % Append the colormap
+                if ischar(imn.cmap) || isstring(imn.cmap)
+                    cmap_data = feval(imn.cmap, 128);
+                else
+                    cmap_data = imn.cmap;
+                end
                 cmap_all = [cmap_all;
-                    interp1(linspace(0,1,size(colormap(imn.cmap),1)), ...
-                    colormap(imn.cmap), ...
+                    interp1(linspace(0,1,size(cmap_data,1)), ...
+                    cmap_data, ...
                     linspace(0,1,128))];
 
             end
@@ -226,14 +232,9 @@ classdef overlayview < handle
                 args.viewargs = cell(0);
             end
 
-            % shift the image
-            for i = 1:length(args.shift)
-                im_all = circshift(im_all,args.shift(i),i);
-            end
-
             % Display the image
-            im(args.viewargs{:}, im_all);
-            colormap(cmap_all);
+            args.im_view_fun(im_all, args.viewargs);
+            colormap(args.ax, cmap_all);
 
             % Make colorbars
             for n = 1:length(args.layers)
