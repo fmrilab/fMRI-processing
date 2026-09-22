@@ -46,32 +46,39 @@ classdef FMRI_Activate_Obj < handle
             obj.data.tmap = tmp(sp{:}, 2);
         end
         
-        function display_tscore(obj)
-            figure;
+        function fig=display_tscore(obj)
+            fig=figure;
             im(obj.data.tmap,'tscore','cbar')
         end
 
-        function overlay_activation(obj,t_thrld,t_max,nrow)
+        function fig=overlay_activation(obj,t_thrld,t_max,nrow,anatImg)
             % overlay t-score map on top of the anatomy
             %   t_thrld: scalar, t-score threshold
             %   t_max(optional): colormap maximum for the tscore map
             %   nrow(optional): number of rows in the overlay montage (default 1)
+            %   anatImg(optional): [nx,ny,(nz)] anatomical image to use as the
+            %       layer-1 background instead of the first frame of obj.data.img
             if nargin<3 || isempty(t_max), t_max = max(obj.data.tmap(:)); end
             if nargin<4 || isempty(nrow), nrow = 1; end
+            if nargin<5, anatImg = []; end
 
             viewargs={'row',nrow,'notick'};
             ov = overlayview;
-            % first volume (t=1) as the anatomy layer; keep all spatial dims (2D or 3D)
-            nsp = ndims(obj.data.img) - 1;
-            sp  = repmat({':'}, 1, nsp);
-            img = abs(squeeze(obj.data.img(sp{:}, 1)));
+            if isempty(anatImg)
+                % first volume (t=1) as the anatomy layer; keep all spatial dims (2D or 3D)
+                nsp = ndims(obj.data.img) - 1;
+                sp  = repmat({':'}, 1, nsp);
+                img = abs(squeeze(obj.data.img(sp{:}, 1)));
+            else
+                img = abs(anatImg);
+            end
             % mask out activation out of the brain
             mask = abs(img)>0.05*max(img(:));
 
             ov.addlayer(img,'caxis',[min(img(:)),max(img(:))])
             ov.addlayer(obj.data.tmap.*mask,'caxis',[t_thrld,t_max],'cmap','hot');
 
-            figure;
+            fig=figure;
             ov.show('viewargs',viewargs);title('Activation map','FontSize',13)
 
             obj.config.t_thrld = t_thrld;
