@@ -9,13 +9,16 @@ function ref = fmri_act(t, t_on, t_off, t_del, varargin)
 % t_off - duration of stimulus "off" period (s)
 % t_del - stimulus onset delay (s)
 %
-% HRF parameters (varargin):
-% del_resp - response delay (s)
-% del_undr - undershoot delay (s)
-% dis_resp - response dispersion (s)
-% dis_undr - undershoot dispersion (s)
-% amp_ratio - response:undershoot amplitude ratio
-% onset - total onset delay (s)
+% varargin:
+%   HRF parameters:
+%       del_resp - response delay (s)
+%       del_undr - undershoot delay (s)
+%       dis_resp - response dispersion (s)
+%       dis_undr - undershoot dispersion (s)
+%       amp_ratio - response:undershoot amplitude ratio
+%       onset - total onset delay (s)
+%   others:
+%       off_first [boolean] - task starts with stimuli off (dflt = true)
 %
 % outputs:
 % ref - reference activation waveform
@@ -28,6 +31,7 @@ function ref = fmri_act(t, t_on, t_off, t_del, varargin)
     arg.dis_undr = 1;
     arg.amp_ratio = 6;
     arg.onset = 0;
+    arg.off_first = true;
     arg = vararg_pair(arg, varargin);
     
     % get tr
@@ -42,7 +46,12 @@ function ref = fmri_act(t, t_on, t_off, t_del, varargin)
     hrf = hrf/sum(hrf);
     
     % create stimulus waveform
-    stim = 1*(mod(t - t_del, t_on + t_off) >= t_off).*(t >= t_del);
+    if arg.off_first
+        stim = 1*(mod(t - t_del, t_on + t_off) >= t_off).*(t >= t_del);
+    else
+        % starts with stimuli on
+        stim = 1*(mod(t - t_del, t_on + t_off) <= t_on).*(t >= t_del);
+    end
     
     % convolve to create activation waveform
     ref = conv(stim(:).',hrf(:).');
