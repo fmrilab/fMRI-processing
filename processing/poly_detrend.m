@@ -1,5 +1,7 @@
 function X_detrend = poly_detrend(X,n)
 % function to remove polynomial trends from temporal data
+% except for the DC component because presumably a DC regressor will be
+% included in the design matrix in GLM
 % by David Frey
 %
 % inputs:
@@ -17,13 +19,13 @@ function X_detrend = poly_detrend(X,n)
     A = t .^ (0:n);
 
     % get coefficients
-    [~,coeffs] = fmri_tscore(A,abs(X));
+    [~,coeffs] = fmri_tscore(A,X);
     coeffs = reshape(coeffs,[],n+1);
 
     % reshape into trends image
     trends = reshape(coeffs(:,2:end)*A(:,2:end).', size(X));
 
     % subtract out trends from magnitude
-    X_detrend = (abs(X) - trends).*exp(1i*angle(X));
+    X_detrend = X - trends;
 
 end
