@@ -10,7 +10,7 @@ function [tscore,beta] = fmri_tscore(A,X,df)
 %
 % outputs:
 % tscore - voxel-wise activation tscores ((N) x nc)
-% beta - voxel-wise activation beta coefficients ((N) x nv)
+% beta - voxel-wise activation beta coefficients ((N) x nc)
 %
 
     % get sizes
@@ -30,7 +30,7 @@ function [tscore,beta] = fmri_tscore(A,X,df)
 
     % calculate variance
     r = xvec - A*beta; % residual
-    rss = sum(r.^2, 1); % sum of squares
+    rss = sum(abs(r).^2, 1); % sum of squares
     v = rss / df; % variance (sigma^2)
 
     % loop through voxels
